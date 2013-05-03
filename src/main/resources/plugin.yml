@@ -1,0 +1,13 @@
+name: Thermals
+main: me.ddos.thermals.ThermalsPlugin
+version: 0.1
+author: DDoS
+commands:
+   th:
+      description: Generate a heatmap and save it as a PNG
+      usage:
+          /th [start x],[start z] [end x],[end z] [fileName]
+          
+permissions:
+  thermals.use: 
+    description: use the plugin 
