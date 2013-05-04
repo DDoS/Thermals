@@ -6,6 +6,9 @@ import me.ddos.thermals.configuration.ThermalsConfiguration;
 import java.io.File;
 import java.util.logging.Logger;
 import me.ddos.thermals.command.CommandHandler;
+import me.ddos.thermals.command.IntLocationArgumentType;
+import me.ddos.thermals.command.IntegerArgumentType;
+import me.ddos.thermals.command.StringArgumentType;
 import me.ddos.thermals.command.ThermalsCommands;
 import me.ddos.thermals.database.HeatDatabase.DatabaseConnectionInfo;
 import org.bukkit.ChatColor;
@@ -30,7 +33,7 @@ public class ThermalsPlugin extends JavaPlugin {
 
 	static {
 		try {
-			Class.forName("me.ddos.thermals.MySQLHeatDatabase");
+			Class.forName("me.ddos.thermals.database.MySQLHeatDatabase");
 		} catch (ClassNotFoundException ex) {
 			logSevere("Couldn't find the MySQLHeatDatabase class");
 		}
@@ -71,7 +74,8 @@ public class ThermalsPlugin extends JavaPlugin {
 		heatManager.start();
 		getServer().getPluginManager().registerEvents(new ThermalsListener(this), this);
 		final CommandHandler commandHandler = new CommandHandler();
-		commandHandler.addCommandExecutors(new ThermalsCommands());
+		commandHandler.addArgumentTypes(new IntegerArgumentType(), new IntLocationArgumentType(), new StringArgumentType());
+		commandHandler.addCommandExecutor(new ThermalsCommands());
 		getCommand("th").setExecutor(commandHandler);
 		final PluginDescriptionFile description = getDescription();
 		logInfo("Enabled. v" + description.getVersion() + ", by " + description.getAuthors().get(0));
