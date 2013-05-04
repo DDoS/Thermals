@@ -4,9 +4,9 @@ version: 0.1
 author: DDoS
 commands:
    th:
-      description: Generate a heatmap and save it as a PNG
+      description: Thermals root command
       usage:
-          /th [start x],[start z] [end x],[end z] [fileName]
+          Invalid arguments, see the Thermals documentation for usage
           
 permissions:
   thermals.use: 

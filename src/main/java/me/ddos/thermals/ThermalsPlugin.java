@@ -1,15 +1,14 @@
 package me.ddos.thermals;
 
 import me.ddos.thermals.heatmap.HeatColorizer;
-import me.ddos.thermals.data.IntLocation;
 import me.ddos.thermals.configuration.AnnotatedConfiguration;
 import me.ddos.thermals.configuration.ThermalsConfiguration;
-import me.ddos.thermals.util.ThermalsUtil;
 import java.io.File;
 import java.util.logging.Logger;
+import me.ddos.thermals.command.CommandHandler;
+import me.ddos.thermals.command.ThermalsCommands;
 import me.ddos.thermals.database.HeatDatabase.DatabaseConnectionInfo;
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -71,6 +70,9 @@ public class ThermalsPlugin extends JavaPlugin {
 		heatManager.setGeneratorColorizer(new HeatColorizer(config.heatGradient));
 		heatManager.start();
 		getServer().getPluginManager().registerEvents(new ThermalsListener(this), this);
+		final CommandHandler commandHandler = new CommandHandler();
+		commandHandler.addCommandExecutors(new ThermalsCommands());
+		getCommand("th").setExecutor(commandHandler);
 		final PluginDescriptionFile description = getDescription();
 		logInfo("Enabled. v" + description.getVersion() + ", by " + description.getAuthors().get(0));
 	}
@@ -90,23 +92,79 @@ public class ThermalsPlugin extends JavaPlugin {
 		logInfo("Disabled. v" + description.getVersion() + ", by " + description.getAuthors().get(0));
 	}
 
-	@Override
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		if (args.length < 3) {
-			tell(sender, "Missing arguments");
-			return false;
-		}
-		final IntLocation start = ThermalsUtil.parse(args[0]);
-		final IntLocation end = ThermalsUtil.parse(args[1]);
-		if (start == null || end == null) {
-			tell(sender, "Invalid location format");
-			return false;
-		}
-		heatManager.queueHeatMapTask(start, end, args[2]);
-		tell(sender, "Heat map generation queued");
-		return true;
-	}
-
+//	@Override
+//	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+//		// CLEAR ALL: /th 'clear' 'all'
+//		// CLEAR lOC: /th 'clear' loc
+//		// CLEAR AREA: /th 'clear' loc loc
+//		// GET LOC: /th 'get' loc
+//		// SET LOC: /th 'set' loc int
+//		// SET AREA 1: /th 'set' loc loc int
+//		// SET AREA 2: /th 'set' loc int int
+//		// GEN AREA 1: /th 'gen' loc loc string
+//		// GEN AREA 2: /th 'gen' loc int string
+//		if (!cmd.getName().equalsIgnoreCase("th")) {
+//			return false;
+//		}
+//		if (args.length >= 1) {
+//			if (args[0].equalsIgnoreCase("clear")) {
+//				if (args.length >= 2) {
+//					if (args[1].equalsIgnoreCase("all")) {
+//						// CLEAR ALL
+//						return true;
+//					} else if (IntLocation.isIntLocation(args[1])) {
+//						if (args.length >= 3) {
+//							if (IntLocation.isIntLocation(args[2])) {
+//								// CLEAR AREA
+//								return true;
+//							}
+//						}
+//						// CLEAR LOC
+//						return true;
+//					}
+//				}
+//			} else if (args[0].equalsIgnoreCase("get")) {
+//				if (args.length >= 2) {
+//					if (IntLocation.isIntLocation(args[1])) {
+//						// GET LOC
+//						return true;
+//					}
+//				}
+//			} else if (args[0].equalsIgnoreCase("set")) {
+//				if (args.length >= 2) {
+//					if (IntLocation.isIntLocation(args[1])) {
+//						if (args.length >= 3) {
+//							if (ThermalsUtil.isInt(args[2])) {
+//								// SET LOC
+//								return true;
+//							} else if (IntLocation.isIntLocation(args[2])) {
+//								if (args.length >= 4) {
+//									if (ThermalsUtil.isInt(args[3])) {
+//										// SET AREA 1
+//										return true;
+//									}
+//								}
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+////		if (args.length < 3) {
+////			tell(sender, "Missing arguments");
+////			return false;
+////		}
+////		final IntLocation start = ThermalsUtil.parse(args[0]);
+////		final IntLocation end = ThermalsUtil.parse(args[1]);
+////		if (start == null || end == null) {
+////			tell(sender, "Invalid location format");
+////			return false;
+////		}
+////		heatManager.queueHeatMapTask(start, end, args[2]);
+////		tell(sender, "Heat map generation queued");
+////		return true;
+//		return false;
+//	}
 	public HeatManager getHeatManager() {
 		return heatManager;
 	}
