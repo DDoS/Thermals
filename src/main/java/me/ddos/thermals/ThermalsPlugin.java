@@ -75,7 +75,7 @@ public class ThermalsPlugin extends JavaPlugin {
 		getServer().getPluginManager().registerEvents(new ThermalsListener(this), this);
 		final CommandHandler commandHandler = new CommandHandler();
 		commandHandler.addArgumentTypes(new IntegerArgumentType(), new IntLocationArgumentType(), new StringArgumentType());
-		commandHandler.addCommandExecutor(new ThermalsCommands());
+		commandHandler.addCommandExecutor(new ThermalsCommands(this));
 		getCommand("th").setExecutor(commandHandler);
 		final PluginDescriptionFile description = getDescription();
 		logInfo("Enabled. v" + description.getVersion() + ", by " + description.getAuthors().get(0));
@@ -108,7 +108,7 @@ public class ThermalsPlugin extends JavaPlugin {
 		LOG.severe("[Thermals] " + msg);
 	}
 
-	public static void tell(CommandSender dest, String msg) {
-		dest.sendMessage(ChatColor.DARK_RED + "[Thermals] " + ChatColor.GRAY + msg);
+	public static void tell(CommandSender destination, String msg) {
+		destination.sendMessage(ChatColor.DARK_RED + "[Thermals] " + ChatColor.GRAY + msg);
 	}
 }

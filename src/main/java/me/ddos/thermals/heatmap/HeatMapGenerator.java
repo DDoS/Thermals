@@ -46,18 +46,18 @@ public class HeatMapGenerator extends Thread {
 				ThermalsPlugin.logInfo("Generator working");
 				while (!tasks.isEmpty()) {
 					final HeatMapTaskData task = tasks.poll();
-					final IntLocation start = task.getStart();
-					final IntLocation end = task.getEnd();
-					final int startX = start.getX();
-					final int startZ = start.getZ();
-					final int endX = end.getZ();
-					final int endZ = end.getZ();
-					final int sizeX = endX - startX + 1;
-					final int sizeZ = endZ - startZ + 1;
-					final List<Heat> heats = database.getHeats(start, end);
+					final IntLocation min = task.getMin();
+					final IntLocation max = task.getMax();
+					final int minX = min.getX();
+					final int minZ = min.getZ();
+					final int maxX = max.getX();
+					final int maxZ = max.getZ();
+					final int sizeX = maxX - minX + 1;
+					final int sizeZ = maxZ - minZ + 1;
 					final float[][] heatMap = new float[sizeX][sizeZ];
+					final List<Heat> heats = database.getHeats(min, max);
 					for (Heat heat : heats) {
-						heatMap[heat.getX() - startX][heat.getZ() - startZ] = heat.getHeat();
+						heatMap[heat.getX() - minX][heat.getZ() - minZ] = heat.getHeat();
 					}
 					ThermalsUtil.normalize(heatMap, minHeat.get(), maxHeat.get());
 					final int[] colors = colorizer.get().colorize(heatMap);
@@ -78,12 +78,11 @@ public class HeatMapGenerator extends Thread {
 		ThermalsPlugin.logInfo("Generator shutting down");
 	}
 
-	public void queueHeatMapTask(IntLocation start, IntLocation end, String fileName) {
-		tasks.add(new HeatMapTaskData(start, end, fileName));
-	}
-
-	public Object getWait() {
-		return wait;
+	public void queueHeatMapTask(IntLocation from, IntLocation to, String fileName) {
+		tasks.add(new HeatMapTaskData(
+				new IntLocation(Math.min(from.getX(), to.getX()), Math.min(from.getZ(), to.getZ())),
+				new IntLocation(Math.max(from.getX(), to.getX()), Math.max(from.getZ(), to.getZ())),
+				fileName));
 	}
 
 	public void end() {
@@ -107,22 +106,22 @@ public class HeatMapGenerator extends Thread {
 	}
 
 	private static class HeatMapTaskData {
-		private final IntLocation start;
-		private final IntLocation end;
+		private final IntLocation min;
+		private final IntLocation max;
 		private final String fileName;
 
-		private HeatMapTaskData(IntLocation start, IntLocation end, String fileName) {
-			this.start = start;
-			this.end = end;
+		private HeatMapTaskData(IntLocation min, IntLocation max, String fileName) {
+			this.min = min;
+			this.max = max;
 			this.fileName = fileName;
 		}
 
-		private IntLocation getStart() {
-			return start;
+		private IntLocation getMin() {
+			return min;
 		}
 
-		private IntLocation getEnd() {
-			return end;
+		private IntLocation getMax() {
+			return max;
 		}
 
 		private String getFileName() {

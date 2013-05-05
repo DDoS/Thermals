@@ -20,12 +20,10 @@ public class MySQLHeatDatabase extends HeatDatabase {
 	private static final String TABLE_NAME = "thermals_heats";
 	private static final String CREATE_TABLE =
 			"CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " "
-			+ "("
-			+ "id INT PRIMARY KEY, "
+			+ "(id INT PRIMARY KEY, "
 			+ "x INT NOT NULL, "
 			+ "z INT NOT NULL, "
-			+ "heat INT NOT NULL"
-			+ ")";
+			+ "heat INT NOT NULL)";
 	private static final String INCREMENT_HEAT =
 			"INSERT INTO " + TABLE_NAME + " "
 			+ "(id, x, z, heat) VALUES (?, ?, ?, 1) "

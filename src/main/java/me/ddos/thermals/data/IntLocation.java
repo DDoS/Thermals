@@ -1,6 +1,7 @@
 package me.ddos.thermals.data;
 
 import java.util.regex.Pattern;
+import org.bukkit.Location;
 
 /**
  *
@@ -10,6 +11,10 @@ public class IntLocation {
 	private static final Pattern FORMAT = Pattern.compile("-?\\d+,-?\\d+");
 	private final int x;
 	private final int z;
+
+	public IntLocation(Location location) {
+		this(location.getBlockX(), location.getBlockZ());
+	}
 
 	public IntLocation(int x, int z) {
 		this.x = x;
@@ -22,6 +27,10 @@ public class IntLocation {
 
 	public int getZ() {
 		return z;
+	}
+
+	public IntLocation offset(int x, int z) {
+		return new IntLocation(getX() + x, getZ() + z);
 	}
 
 	@Override

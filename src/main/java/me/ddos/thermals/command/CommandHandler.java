@@ -6,12 +6,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import me.ddos.thermals.ThermalsPlugin;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -26,10 +28,12 @@ public class CommandHandler implements CommandExecutor {
 	private final Map<Method, Object> methodExecutors = new HashMap<Method, Object>();
 	private final Map<Method, Class<?>[]> methodParameters = new HashMap<Method, Class<?>[]>();
 	private final Map<Method, String[]> methodRequiredValues = new HashMap<Method, String[]>();
+	private final Map<Method, String> methodPermissions = new HashMap<Method, String>();
+	private String missingPermissionMessage = ChatColor.RED + "You don't have permission to use this command";
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] stringArgs) {
-		final Object[] args = convertStringArguments(stringArgs);
+		final Object[] args = convertStringArguments(sender, stringArgs);
 		final List<Method> matches = findMatchingMethods(args);
 		final int size = matches.size();
 		try {
@@ -40,7 +44,7 @@ public class CommandHandler implements CommandExecutor {
 				final Method method = matches.get(0);
 				final String[] requiredValues = methodRequiredValues.get(method);
 				if (requiredValues == null || hasRequiredValues(stringArgs, requiredValues)) {
-					method.invoke(methodExecutors.get(method), ArrayUtils.add(args, 0, sender));
+					executeCommand(method, sender, args);
 					return true;
 				}
 				return false;
@@ -60,7 +64,7 @@ public class CommandHandler implements CommandExecutor {
 					}
 				}
 				if (bestMatch != null) {
-					bestMatch.invoke(methodExecutors.get(bestMatch), ArrayUtils.add(args, 0, sender));
+					executeCommand(bestMatch, sender, args);
 					return true;
 				}
 				return false;
@@ -74,12 +78,12 @@ public class CommandHandler implements CommandExecutor {
 		}
 	}
 
-	private Object[] convertStringArguments(String[] stringArgs) {
+	private Object[] convertStringArguments(CommandSender sender, String[] stringArgs) {
 		final Object[] args = new Object[stringArgs.length];
 		for (int i = 0; i < stringArgs.length; i++) {
 			for (ArgumentType type : argumentTypes) {
-				if (type.isValid(stringArgs[i])) {
-					args[i] = type.convert(stringArgs[i]);
+				if (type.isValid(sender, stringArgs[i])) {
+					args[i] = type.convert(sender, stringArgs[i]);
 					break;
 				}
 			}
@@ -103,6 +107,17 @@ public class CommandHandler implements CommandExecutor {
 			matches.add(entry.getKey());
 		}
 		return matches;
+	}
+
+	private void executeCommand(Method executor, CommandSender sender, Object[] args) throws Exception {
+		final String permission = methodPermissions.get(executor);
+		if (permission != null) {
+			if (!sender.hasPermission(permission)) {
+				ThermalsPlugin.tell(sender, missingPermissionMessage);
+				return;
+			}
+		}
+		executor.invoke(methodExecutors.get(executor), ArrayUtils.add(args, 0, sender));
 	}
 
 	public void addArgumentTypes(ArgumentType... types) {
@@ -131,18 +146,32 @@ public class CommandHandler implements CommandExecutor {
 			if (parameterTypes.length < 1 || !parameterTypes[0].isAssignableFrom(CommandSender.class)) {
 				throw new IllegalArgumentException("Command methods must have for first argument CommandSender");
 			}
-			final Class<?>[] params = new Class<?>[parameterTypes.length - 1];
-			System.arraycopy(parameterTypes, 1, params, 0, params.length);
-			methodParameters.put(method, params);
 			methodExecutors.put(method, executor);
-			final RequiredValues annotation = method.getAnnotation(RequiredValues.class);
-			methodRequiredValues.put(method, annotation != null ? annotation.value() : null);
+			final Class<?>[] parameterTypesArgs = new Class<?>[parameterTypes.length - 1];
+			System.arraycopy(parameterTypes, 1, parameterTypesArgs, 0, parameterTypesArgs.length);
+			methodParameters.put(method, parameterTypesArgs);
+			if (method.isAnnotationPresent(RequiredArgumentValues.class)) {
+				final String[] requiredValues = method.getAnnotation(RequiredArgumentValues.class).value();
+				if (requiredValues != null && requiredValues.length > 0) {
+					methodRequiredValues.put(method, requiredValues);
+				}
+			}
+			if (method.isAnnotationPresent(CommandPermission.class)) {
+				final String[] permissionNodes = method.getAnnotation(CommandPermission.class).value();
+				if (permissionNodes != null && permissionNodes.length > 0) {
+					methodPermissions.put(method, StringUtils.join(permissionNodes, '.'));
+				}
+			}
 		}
+	}
+
+	public void setMissingPermissionMessage(String missingPermissionMessage) {
+		this.missingPermissionMessage = missingPermissionMessage;
 	}
 
 	private static boolean hasRequiredValues(String[] args, String[] required) {
 		for (int i = 0; i < required.length; i++) {
-			if (required[i].equals("")) {
+			if (required[i].isEmpty()) {
 				continue;
 			}
 			if (!required[i].equals(args[i])) {
@@ -159,7 +188,13 @@ public class CommandHandler implements CommandExecutor {
 
 	@Target(ElementType.METHOD)
 	@Retention(RetentionPolicy.RUNTIME)
-	public static @interface RequiredValues {
+	public static @interface CommandPermission {
+		public String[] value() default {};
+	}
+
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	public static @interface RequiredArgumentValues {
 		public String[] value() default {};
 	}
 }

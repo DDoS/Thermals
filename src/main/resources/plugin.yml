@@ -5,9 +5,14 @@ author: DDoS
 commands:
    th:
       description: Thermals root command
-      usage:
-          Invalid arguments, see the Thermals documentation for usage
-          
+      usage: Invalid arguments, see the Thermals documentation for usage
+
 permissions:
-  thermals.use: 
-    description: use the plugin 
+  thermals.clear:
+    description: Clear heat values
+  thermals.get:
+    description: Get heat values
+  thermals.set:
+    description: Set heat values
+  thermals.gen:
+    description: Generate heat maps

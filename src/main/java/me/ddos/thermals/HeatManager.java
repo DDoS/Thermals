@@ -62,11 +62,11 @@ public class HeatManager {
 		logger.queueHeatIncrement(location);
 	}
 
-	public void queueHeatMapTask(IntLocation start, IntLocation end, String name) {
+	public void queueHeatMapTask(IntLocation from, IntLocation to, String name) {
 		if (!running) {
 			throw new IllegalStateException("Heat manager is not running");
 		}
-		generator.queueHeatMapTask(start, end, name);
+		generator.queueHeatMapTask(from, to, name);
 		synchronized (generatorWait) {
 			generatorWait.notifyAll();
 		}
