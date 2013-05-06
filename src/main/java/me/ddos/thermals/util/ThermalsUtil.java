@@ -1,5 +1,7 @@
 package me.ddos.thermals.util;
 
+import me.ddos.thermals.data.IntLocation;
+
 /**
  *
  * @author DDoS
@@ -32,5 +34,13 @@ public class ThermalsUtil {
 			return max;
 		}
 		return val;
+	}
+
+	public static IntLocation getMin(IntLocation a, IntLocation b) {
+		return new IntLocation(Math.min(a.getX(), b.getX()), Math.min(a.getZ(), b.getZ()));
+	}
+
+	public static IntLocation getMax(IntLocation a, IntLocation b) {
+		return new IntLocation(Math.max(a.getX(), b.getX()), Math.max(a.getZ(), b.getZ()));
 	}
 }

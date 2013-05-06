@@ -16,6 +16,10 @@ public class IntLocation {
 		this(location.getBlockX(), location.getBlockZ());
 	}
 
+	public IntLocation(IntLocation location) {
+		this(location.getX(), location.getZ());
+	}
+
 	public IntLocation(int x, int z) {
 		this.x = x;
 		this.z = z;
@@ -33,27 +37,8 @@ public class IntLocation {
 		return new IntLocation(getX() + x, getZ() + z);
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof IntLocation)) {
-			return false;
-		}
-		final IntLocation other = (IntLocation) obj;
-		if (x != other.x) {
-			return false;
-		}
-		if (z != other.z) {
-			return false;
-		}
-		return true;
-	}
-
-	@Override
-	public int hashCode() {
-		int hash = 3;
-		hash = 37 * hash + x;
-		hash = 37 * hash + z;
-		return hash;
+	public long getID() {
+		return (long) x << 32 | z & 0xffffffffl;
 	}
 
 	@Override

@@ -22,16 +22,15 @@ import me.ddos.thermals.ThermalsPlugin;
  */
 public class HeatMapGenerator extends Thread {
 	private final HeatDatabase database;
-	private final Object wait;
+	private final Object wait = new Object();
 	private final AtomicInteger minHeat = new AtomicInteger(0);
 	private final AtomicInteger maxHeat = new AtomicInteger(5000);
 	private final AtomicReference<HeatColorizer> colorizer = new AtomicReference<HeatColorizer>();
 	private final AtomicBoolean running = new AtomicBoolean(true);
 	private final Queue<HeatMapTaskData> tasks = new ConcurrentLinkedQueue<HeatMapTaskData>();
 
-	public HeatMapGenerator(HeatDatabase database, Object wait) {
+	public HeatMapGenerator(HeatDatabase database) {
 		this.database = database;
-		this.wait = wait;
 	}
 
 	@Override
@@ -79,10 +78,13 @@ public class HeatMapGenerator extends Thread {
 	}
 
 	public void queueHeatMapTask(IntLocation from, IntLocation to, String fileName) {
-		tasks.add(new HeatMapTaskData(
-				new IntLocation(Math.min(from.getX(), to.getX()), Math.min(from.getZ(), to.getZ())),
-				new IntLocation(Math.max(from.getX(), to.getX()), Math.max(from.getZ(), to.getZ())),
-				fileName));
+		tasks.add(new HeatMapTaskData(ThermalsUtil.getMin(from, to), ThermalsUtil.getMax(from, to), fileName));
+	}
+
+	public void execute() {
+		synchronized (wait) {
+			wait.notifyAll();
+		}
 	}
 
 	public void end() {

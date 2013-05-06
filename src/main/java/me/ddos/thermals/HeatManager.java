@@ -1,12 +1,15 @@
 package me.ddos.thermals;
 
+import java.util.List;
 import me.ddos.thermals.database.HeatLogger;
 import me.ddos.thermals.heatmap.HeatColorizer;
 import me.ddos.thermals.heatmap.HeatMapGenerator;
 import me.ddos.thermals.data.IntLocation;
 import me.ddos.thermals.database.HeatDatabase;
 import java.util.Timer;
+import me.ddos.thermals.data.Heat;
 import me.ddos.thermals.database.HeatDatabase.DatabaseConnectionInfo;
+import me.ddos.thermals.util.ThermalsUtil;
 
 /**
  *
@@ -19,12 +22,11 @@ public class HeatManager {
 	private final Timer timer = new Timer();
 	private long loggerDelay = 30000;
 	private HeatMapGenerator generator;
-	private final Object generatorWait = new Object();
 
 	public HeatManager(String databaseType) {
 		database = HeatDatabase.newDatabase(databaseType);
 		logger = new HeatLogger(database);
-		generator = new HeatMapGenerator(database, generatorWait);
+		generator = new HeatMapGenerator(database);
 	}
 
 	public void start() {
@@ -46,7 +48,7 @@ public class HeatManager {
 		}
 		timer.cancel();
 		generator.end();
-		generator = new HeatMapGenerator(database, generatorWait);
+		generator = new HeatMapGenerator(database);
 		database.disconnect();
 		running = false;
 	}
@@ -67,9 +69,39 @@ public class HeatManager {
 			throw new IllegalStateException("Heat manager is not running");
 		}
 		generator.queueHeatMapTask(from, to, name);
-		synchronized (generatorWait) {
-			generatorWait.notifyAll();
-		}
+		generator.execute();
+	}
+
+	public void incrementHeat(IntLocation location) {
+		database.incrementHeat(location);
+	}
+
+	public void clearHeat(IntLocation location) {
+		database.clearHeat(location);
+	}
+
+	public void clearHeats(IntLocation from, IntLocation to) {
+		database.clearHeats(ThermalsUtil.getMin(from, to), ThermalsUtil.getMax(from, to));
+	}
+
+	public void clearAllHeats() {
+		database.clearAllHeats();
+	}
+
+	public Heat getHeat(IntLocation location) {
+		return database.getHeat(location);
+	}
+
+	public List<Heat> getHeats(IntLocation from, IntLocation to) {
+		return database.getHeats(ThermalsUtil.getMin(from, to), ThermalsUtil.getMax(from, to));
+	}
+
+	public void setHeat(IntLocation location, int heat) {
+		database.setHeat(location, heat);
+	}
+
+	public void setHeats(IntLocation from, IntLocation to, int heat) {
+		database.setHeats(ThermalsUtil.getMin(from, to), ThermalsUtil.getMax(from, to), heat);
 	}
 
 	public void setDatabaseInfo(DatabaseConnectionInfo info) {

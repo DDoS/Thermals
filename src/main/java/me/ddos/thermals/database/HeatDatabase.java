@@ -27,13 +27,21 @@ public abstract class HeatDatabase {
 
 	public abstract boolean hasConnection();
 
-	public void incrementHeat(int x, int z) {
-		incrementHeat(new IntLocation(x, z));
-	}
-
 	public abstract void incrementHeat(IntLocation location);
 
-	public abstract List<Heat> getHeats(IntLocation start, IntLocation end);
+	public abstract void clearHeat(IntLocation location);
+
+	public abstract void clearHeats(IntLocation min, IntLocation max);
+
+	public abstract void clearAllHeats();
+
+	public abstract Heat getHeat(IntLocation location);
+
+	public abstract List<Heat> getHeats(IntLocation min, IntLocation max);
+
+	public abstract void setHeat(IntLocation location, int heat);
+
+	public abstract void setHeats(IntLocation min, IntLocation max, int heat);
 
 	public void setInfo(DatabaseConnectionInfo info) {
 		setHost(info.getHost());
