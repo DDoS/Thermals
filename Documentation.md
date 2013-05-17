@@ -23,7 +23,7 @@ Example:
 
 - - -
 
-# Command Usage
+## Command Usage
 
 Clears the heat value at the given location.  
 `/th clear [(location) location]`
