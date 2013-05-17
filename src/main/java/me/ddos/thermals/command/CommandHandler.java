@@ -7,12 +7,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import me.ddos.thermals.ThermalsPlugin;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -23,14 +27,17 @@ import org.bukkit.command.CommandSender;
  * @author DDoS
  */
 public class CommandHandler implements CommandExecutor {
+	private final String rootCommand;
 	private final List<ArgumentType> argumentTypes = new ArrayList<ArgumentType>();
-	private final Map<Method, Object> methodExecutors = new HashMap<Method, Object>();
-	private final Map<Method, Class<?>[]> methodParameters = new HashMap<Method, Class<?>[]>();
-	private final Map<Method, String[]> methodRequiredValues = new HashMap<Method, String[]>();
-	private final Map<Method, String> methodPermissions = new HashMap<Method, String>();
+	private final Map<Method, Object> methodExecutors = new LinkedHashMap<Method, Object>();
+	private final Map<Method, Class<?>[]> methodParameters = new LinkedHashMap<Method, Class<?>[]>();
+	private final Map<Method, String[]> methodRequiredValues = new LinkedHashMap<Method, String[]>();
+	private final Map<Method, String> methodPermissions = new LinkedHashMap<Method, String>();
 	private String missingPermissionMessage = ChatColor.RED + "You don't have permission to use this command";
+	private Document documentation;
 
-	public CommandHandler() {
+	public CommandHandler(String rootCommand) {
+		this.rootCommand = rootCommand;
 		argumentTypes.add(new StringArgumentType());
 	}
 
@@ -167,6 +174,7 @@ public class CommandHandler implements CommandExecutor {
 				}
 				requiredValues.add("");
 			}
+			removeTrailingEmptyStrings(requiredValues);
 			if (requiredValues.size() > 0) {
 				methodRequiredValues.put(method, requiredValues.toArray(new String[requiredValues.size()]));
 			}
@@ -175,6 +183,66 @@ public class CommandHandler implements CommandExecutor {
 
 	public void setMissingPermissionMessage(String missingPermissionMessage) {
 		this.missingPermissionMessage = missingPermissionMessage;
+	}
+
+	public Document getCommandDocs() {
+		return getCommandDocs(false);
+	}
+
+	public Document getCommandDocs(boolean refresh) {
+		if (documentation != null && !refresh) {
+			return documentation;
+		}
+		final Document document = new Document();
+		int i = 0;
+		final String[] argTypeDocs = new String[argumentTypes.size() - 1];
+		for (; i < argTypeDocs.length; i++) {
+			final ArgumentType argType = argumentTypes.get(i);
+			argTypeDocs[i] = WordUtils.capitalize(argType.getTypeName()) + "\n" + argType.getDocs();
+		}
+		document.addParagraphs("Argument Types", argTypeDocs);
+		i = 0;
+		final String[] paramDocs = new String[methodExecutors.size()];
+		for (Method method : methodExecutors.keySet()) {
+			final CommandDocs docs = method.getAnnotation(CommandDocs.class);
+			final String[] argNames;
+			if (docs != null) {
+				final String desc = docs.desc();
+				if (desc != null && !desc.isEmpty()) {
+					paramDocs[i] = desc;
+				}
+				argNames = docs.argNames();
+			} else {
+				argNames = null;
+				paramDocs[i] = "No description provided.";
+			}
+			paramDocs[i] += "\n";
+			final String[] requiredValues = methodRequiredValues.get(method);
+			String parameters = "/" + rootCommand;
+			int ii = -1;
+			for (Class<?> paramClass : methodParameters.get(method)) {
+				if (requiredValues != null && ++ii < requiredValues.length && !requiredValues[ii].isEmpty()) {
+					parameters += " " + requiredValues[ii];
+					continue;
+				}
+				for (ArgumentType argType : argumentTypes) {
+					if (paramClass.equals(argType.getType())) {
+						final String argTypeName = argType.getTypeName();
+						final String argName;
+						if (argNames != null && ii < argNames.length && !argNames[ii].isEmpty()) {
+							argName = argNames[ii];
+						} else {
+							argName = argTypeName.substring(0, Math.min(3, argTypeName.length()));
+						}
+						parameters += " [(" + argTypeName + ") " + argName + "]";
+						break;
+					}
+				}
+			}
+			paramDocs[i++] += parameters.trim();
+		}
+		document.addParagraphs("Command Usage", paramDocs);
+		return document;
 	}
 
 	private static boolean hasRequiredValues(String[] args, String[] required) {
@@ -189,16 +257,46 @@ public class CommandHandler implements CommandExecutor {
 		return true;
 	}
 
+	private static void removeTrailingEmptyStrings(List<String> list) {
+		for (int i = list.size() - 1; i >= 0; i--) {
+			if (list.get(i).isEmpty()) {
+				list.remove(i);
+			} else {
+				break;
+			}
+		}
+	}
+
 	@Target(ElementType.METHOD)
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface CommandMethod {
 		public String value() default "";
 	}
 
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	public static @interface CommandDocs {
+		public String[] argNames() default {};
+
+		public String desc() default "";
+	}
+
 	@Target(ElementType.PARAMETER)
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface Require {
 		public String value() default "";
+	}
+
+	public static interface ArgumentType {
+		public boolean isValid(CommandSender sender, String stringArg);
+
+		public Object convert(CommandSender sender, String stringArg);
+
+		public Class<?> getType();
+
+		public String getTypeName();
+
+		public String getDocs();
 	}
 
 	private static class StringArgumentType implements ArgumentType {
@@ -208,8 +306,69 @@ public class CommandHandler implements CommandExecutor {
 		}
 
 		@Override
-		public Object convert(CommandSender sender, String stringArg) {
+		public String convert(CommandSender sender, String stringArg) {
 			return stringArg;
+		}
+
+		@Override
+		public Class<String> getType() {
+			return String.class;
+		}
+
+		@Override
+		public String getTypeName() {
+			return "string";
+		}
+
+		@Override
+		public String getDocs() {
+			return "";
+		}
+	}
+
+	public static class Document {
+		private final Map<String, List<String>> sections = new LinkedHashMap<String, List<String>>();
+
+		public Set<String> getSections() {
+			return sections.keySet();
+		}
+
+		public void addParagraphs(String section, String... paragraphs) {
+			final List<String> sectionParagraphs;
+			if (!sections.containsKey(section)) {
+				sectionParagraphs = new ArrayList<String>();
+				sections.put(section, sectionParagraphs);
+			} else {
+				sectionParagraphs = sections.get(section);
+			}
+			sectionParagraphs.addAll(Arrays.asList(paragraphs));
+		}
+
+		public List<String> getParagraphs(String section) {
+			return sections.get(section);
+		}
+
+		public String getParagraph(String section, int index) {
+			if (!sections.containsKey(section)) {
+				return null;
+			}
+			final List<String> paragraphs = sections.get(section);
+			if (index >= paragraphs.size()) {
+				return null;
+			}
+			return paragraphs.get(index);
+		}
+
+		@Override
+		public String toString() {
+			final String[] sectionStrings = new String[sections.size()];
+			int i = 0;
+			for (Entry<String, List<String>> section : sections.entrySet()) {
+				sectionStrings[i++] = section.getKey() + "\n\n"
+						+ StringUtils.join(section.getValue().toArray(), "\n\n");
+			}
+			StringUtils.join(sectionStrings, "\n\n");
+			return StringUtils.join(sectionStrings, "\n\n--------------------\n\n");
 		}
 	}
 }

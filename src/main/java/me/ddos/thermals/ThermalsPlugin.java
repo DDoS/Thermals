@@ -61,7 +61,7 @@ public class ThermalsPlugin extends JavaPlugin {
 		heatManager = createHeatManager();
 		heatManager.start();
 		getServer().getPluginManager().registerEvents(new ThermalsListener(this), this);
-		final CommandHandler commandHandler = new CommandHandler();
+		final CommandHandler commandHandler = new CommandHandler("th");
 		commandHandler.addArgumentTypes(new IntegerArgumentType(), new IntLocationArgumentType());
 		commandHandler.addCommandExecutor(new ThermalsCommands(heatManager));
 		getCommand("th").setExecutor(commandHandler);
