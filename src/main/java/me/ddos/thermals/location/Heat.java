@@ -1,5 +1,6 @@
-package me.ddos.thermals.data;
+package me.ddos.thermals.location;
 
+import me.ddos.thermals.location.IntLocation;
 import org.bukkit.Location;
 
 /**

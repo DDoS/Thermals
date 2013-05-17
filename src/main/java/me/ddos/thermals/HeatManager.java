@@ -4,11 +4,12 @@ import java.util.List;
 import me.ddos.thermals.database.HeatLogger;
 import me.ddos.thermals.heatmap.HeatColorizer;
 import me.ddos.thermals.heatmap.HeatMapGenerator;
-import me.ddos.thermals.data.IntLocation;
+import me.ddos.thermals.location.IntLocation;
 import me.ddos.thermals.database.HeatDatabase;
 import java.util.Timer;
-import me.ddos.thermals.data.Heat;
+import me.ddos.thermals.location.Heat;
 import me.ddos.thermals.database.HeatDatabase.DatabaseConnectionInfo;
+import me.ddos.thermals.heatmap.Background;
 import me.ddos.thermals.util.ThermalsUtil;
 
 /**
@@ -48,7 +49,6 @@ public class HeatManager {
 		}
 		timer.cancel();
 		generator.end();
-		generator = new HeatMapGenerator(database);
 		database.disconnect();
 		running = false;
 	}
@@ -130,5 +130,9 @@ public class HeatManager {
 
 	public void setGeneratorColorizer(HeatColorizer colorizer) {
 		generator.setColorizer(colorizer);
+	}
+
+	public void setGeneratorBackground(Background background) {
+		generator.setBackground(background);
 	}
 }

@@ -5,7 +5,7 @@ import me.ddos.thermals.ThermalsPlugin;
 import me.ddos.thermals.command.CommandHandler.CommandMethod;
 import me.ddos.thermals.command.CommandHandler.CommandPermission;
 import me.ddos.thermals.command.CommandHandler.RequiredArgumentValues;
-import me.ddos.thermals.data.IntLocation;
+import me.ddos.thermals.location.IntLocation;
 import org.bukkit.command.CommandSender;
 
 /**

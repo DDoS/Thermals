@@ -8,8 +8,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import me.ddos.thermals.data.Heat;
-import me.ddos.thermals.data.IntLocation;
+import me.ddos.thermals.location.Heat;
+import me.ddos.thermals.location.IntLocation;
 import me.ddos.thermals.ThermalsPlugin;
 
 /**
@@ -234,9 +234,9 @@ public class MySQLHeatDatabase extends HeatDatabase {
 
 	@Override
 	public void setHeats(IntLocation min, IntLocation max, int heat) {
-		for (int x = min.getX(); x <= max.getX(); x++) {
-			for (int z = min.getZ(); z <= max.getZ(); z++) {
-				setHeat(new IntLocation(x, z), heat);
+		for (int xx = min.getX(); xx <= max.getX(); xx++) {
+			for (int zz = min.getZ(); zz <= max.getZ(); zz++) {
+				setHeat(new IntLocation(xx, zz), heat);
 			}
 		}
 	}

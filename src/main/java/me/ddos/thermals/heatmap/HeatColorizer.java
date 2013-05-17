@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import me.ddos.thermals.util.ThermalsUtil;
 import org.bukkit.Color;
 
 /**
@@ -11,8 +12,6 @@ import org.bukkit.Color;
  * @author DDoS
  */
 public class HeatColorizer {
-	private static final int OPAQUE_ALPHA = 0xff000000;
-	private static final int COLORLESS = 0x00ffffff;
 	public static final List<Color> THERMOGRAPHIC_GRADIENT =
 			Collections.unmodifiableList(Lists.newArrayList(
 			new Color[]{
@@ -24,6 +23,10 @@ public class HeatColorizer {
 				Color.fromRGB(255, 255, 255)
 			}));
 	private final Color[] gradient;
+
+	public HeatColorizer() {
+		this(THERMOGRAPHIC_GRADIENT);
+	}
 
 	public HeatColorizer(Collection<Color> gradient) {
 		this(gradient.toArray(new Color[gradient.size()]));
@@ -37,14 +40,11 @@ public class HeatColorizer {
 		}
 	}
 
-	public int[] colorize(float[][] heatMap) {
-		final int length = heatMap.length;
-		final int width = heatMap[0].length;
-		final int[] colors = new int[length * width];
-		for (int x = 0; x < length; x++) {
-			for (int z = 0; z < width; z++) {
-				if (heatMap[x][z] > 0) {
-					final float gradientIndexHigh = heatMap[x][z] * (gradient.length - 1);
+	public void colorizeTo(float[][] heatMap, int[] destination, int sizeX, int sizeZ) {
+		for (int xx = 0; xx < sizeX; xx++) {
+			for (int zz = 0; zz < sizeZ; zz++) {
+				if (heatMap[xx][zz] > 0) {
+					final float gradientIndexHigh = heatMap[xx][zz] * (gradient.length - 1);
 					final int gradientIndexLow = (int) Math.floor(gradientIndexHigh);
 					final Color colorLow = gradient[gradientIndexLow];
 					final Color colorHigh = gradient[gradientIndexLow + 1];
@@ -52,13 +52,11 @@ public class HeatColorizer {
 					final int red = lerp(colorLow.getRed(), colorHigh.getRed(), percent);
 					final int green = lerp(colorLow.getGreen(), colorHigh.getGreen(), percent);
 					final int blue = lerp(colorLow.getBlue(), colorHigh.getBlue(), percent);
-					colors[x + z * length] = OPAQUE_ALPHA | (red & 0xff) << 16 | (green & 0xff) << 8 | (blue & 0xff);
-				} else {
-					colors[x + z * length] = COLORLESS;
+					destination[xx + zz * sizeX] =
+							ThermalsUtil.OPAQUE_ALPHA | (red & 0xff) << 16 | (green & 0xff) << 8 | (blue & 0xff);
 				}
 			}
 		}
-		return colors;
 	}
 
 	private static int lerp(float a, float b, float percent) {

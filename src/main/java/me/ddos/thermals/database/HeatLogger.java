@@ -1,6 +1,6 @@
 package me.ddos.thermals.database;
 
-import me.ddos.thermals.data.IntLocation;
+import me.ddos.thermals.location.IntLocation;
 import java.util.Queue;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;

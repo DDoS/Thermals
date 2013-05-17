@@ -1,8 +1,8 @@
 package me.ddos.thermals.database;
 
 import java.util.List;
-import me.ddos.thermals.data.Heat;
-import me.ddos.thermals.data.IntLocation;
+import me.ddos.thermals.location.Heat;
+import me.ddos.thermals.location.IntLocation;
 import me.ddos.thermals.util.TypeFactory;
 
 /**

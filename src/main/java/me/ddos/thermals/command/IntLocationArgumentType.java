@@ -1,6 +1,6 @@
 package me.ddos.thermals.command;
 
-import me.ddos.thermals.data.IntLocation;
+import me.ddos.thermals.location.IntLocation;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 

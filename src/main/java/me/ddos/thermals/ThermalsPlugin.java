@@ -1,5 +1,6 @@
 package me.ddos.thermals;
 
+import java.awt.Font;
 import me.ddos.thermals.heatmap.HeatColorizer;
 import me.ddos.thermals.configuration.AnnotatedConfiguration;
 import me.ddos.thermals.configuration.ThermalsConfiguration;
@@ -11,6 +12,7 @@ import me.ddos.thermals.command.IntegerArgumentType;
 import me.ddos.thermals.command.StringArgumentType;
 import me.ddos.thermals.command.ThermalsCommands;
 import me.ddos.thermals.database.HeatDatabase.DatabaseConnectionInfo;
+import me.ddos.thermals.heatmap.Background;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -57,20 +59,7 @@ public class ThermalsPlugin extends JavaPlugin {
 		} catch (Exception ex) {
 			logSevere("Couldn't save the config defaults: " + ex.getMessage());
 		}
-		final DatabaseConnectionInfo info = new DatabaseConnectionInfo();
-		info.setHost(config.databaseHost);
-		info.setPort(config.databasePort);
-		info.setDatabaseName(config.databaseName);
-		info.setUser(config.databaseUser);
-		info.setPassword(config.databasePassword);
-		heatManager = new HeatManager(config.databaseType);
-		heatManager.setDatabaseInfo(info);
-		heatManager.setLoggerDelay(config.loggerDelay);
-		heatManager.setLoggerRunThreshold(config.loggerRunThreshold);
-		heatManager.shouldLoggerSupressInfo(config.loggerSuppressInfo);
-		heatManager.setMinHeat(config.generatorMinHeat);
-		heatManager.setMaxHeat(config.generatorMaxHeat);
-		heatManager.setGeneratorColorizer(new HeatColorizer(config.heatGradient));
+		heatManager = createHeatManager();
 		heatManager.start();
 		getServer().getPluginManager().registerEvents(new ThermalsListener(this), this);
 		final CommandHandler commandHandler = new CommandHandler();
@@ -94,6 +83,35 @@ public class ThermalsPlugin extends JavaPlugin {
 		}
 		final PluginDescriptionFile description = getDescription();
 		logInfo("Disabled. v" + description.getVersion() + ", by " + description.getAuthors().get(0));
+	}
+
+	private HeatManager createHeatManager() {
+		final HeatManager manager = new HeatManager(config.databaseType);
+		final DatabaseConnectionInfo info = new DatabaseConnectionInfo();
+		info.setHost(config.databaseHost);
+		info.setPort(config.databasePort);
+		info.setDatabaseName(config.databaseName);
+		info.setUser(config.databaseUser);
+		info.setPassword(config.databasePassword);
+		manager.setDatabaseInfo(info);
+		manager.setLoggerDelay(config.loggerDelay);
+		manager.setLoggerRunThreshold(config.loggerRunThreshold);
+		manager.shouldLoggerSupressInfo(config.loggerSuppressInfo);
+		manager.setMinHeat(config.generatorMinHeat);
+		manager.setMaxHeat(config.generatorMaxHeat);
+		manager.setGeneratorColorizer(new HeatColorizer(config.heatGradient));
+		final Background background = new Background();
+		background.setBackgroundColor(config.backgroundColor);
+		background.drawGrid(config.drawGrid);
+		background.setGridLineInterval(config.gridLineInterval);
+		background.setGridLineColor(config.gridLineColor);
+		background.drawGridCoords(config.drawGridCoords);
+		background.setCoordsGridLineInterval(config.coordsGridLineInterval);
+		background.setCoordsPointColor(config.coordsPointColor);
+		background.setCoordsFontColor(config.coordsFontColor);
+		background.setCoordsFont(new Font(config.coordsFontName, Font.PLAIN, config.coordsFontSize));
+		manager.setGeneratorBackground(background);
+		return manager;
 	}
 
 	public HeatManager getHeatManager() {

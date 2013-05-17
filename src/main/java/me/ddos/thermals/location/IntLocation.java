@@ -1,4 +1,4 @@
-package me.ddos.thermals.data;
+package me.ddos.thermals.location;
 
 import java.util.regex.Pattern;
 import org.bukkit.Location;

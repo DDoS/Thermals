@@ -1,7 +1,7 @@
 package me.ddos.thermals.heatmap;
 
-import me.ddos.thermals.data.Heat;
-import me.ddos.thermals.data.IntLocation;
+import me.ddos.thermals.location.Heat;
+import me.ddos.thermals.location.IntLocation;
 import me.ddos.thermals.util.ThermalsUtil;
 import me.ddos.thermals.database.HeatDatabase;
 import java.awt.image.BufferedImage;
@@ -25,6 +25,7 @@ public class HeatMapGenerator extends Thread {
 	private final Object wait = new Object();
 	private final AtomicInteger minHeat = new AtomicInteger(0);
 	private final AtomicInteger maxHeat = new AtomicInteger(5000);
+	private final AtomicReference<Background> background = new AtomicReference<Background>();
 	private final AtomicReference<HeatColorizer> colorizer = new AtomicReference<HeatColorizer>();
 	private final AtomicBoolean running = new AtomicBoolean(true);
 	private final Queue<HeatMapTaskData> tasks = new ConcurrentLinkedQueue<HeatMapTaskData>();
@@ -59,10 +60,10 @@ public class HeatMapGenerator extends Thread {
 						heatMap[heat.getX() - minX][heat.getZ() - minZ] = heat.getHeat();
 					}
 					ThermalsUtil.normalize(heatMap, minHeat.get(), maxHeat.get());
-					final int[] colors = colorizer.get().colorize(heatMap);
 					final BufferedImage image = new BufferedImage(sizeX, sizeZ, BufferedImage.TYPE_INT_ARGB);
-					final int[] data = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-					System.arraycopy(colors, 0, data, 0, colors.length);
+					final int[] colors = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+					background.get().createBackground(image, minX, minZ);
+					colorizer.get().colorizeTo(heatMap, colors, sizeX, sizeZ);
 					final File file = new File(ThermalsPlugin.PLUGIN_DIR, task.getFileName() + ".png");
 					if (file.exists()) {
 						file.delete();
@@ -101,6 +102,10 @@ public class HeatMapGenerator extends Thread {
 
 	public void setMaxHeat(int maxHeat) {
 		this.maxHeat.set(maxHeat);
+	}
+
+	public void setBackground(Background background) {
+		this.background.set(background);
 	}
 
 	public void setColorizer(HeatColorizer colorizer) {
