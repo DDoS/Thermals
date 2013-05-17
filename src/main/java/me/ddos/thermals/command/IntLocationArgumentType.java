@@ -43,6 +43,7 @@ public class IntLocationArgumentType implements ArgumentType {
 	public String getDocs() {
 		return "Represents a 2D location in a world.\n"
 				+ "Format: [(integer) x],[(integer) z] OR here OR there\n"
+				+ "Example: -32,76\n"
 				+ "\"here\" represents the player's current location (x and z).\n"
 				+ "\"there\" represents the player's target location (x and z of the block being looked at, up to 500 blocks away).\n"
 				+ "\"here\" and \"there\" can only be used in game.";
