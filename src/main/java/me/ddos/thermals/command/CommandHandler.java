@@ -1,19 +1,18 @@
 package me.ddos.thermals.command;
 
+import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import me.ddos.thermals.ThermalsPlugin;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -111,11 +110,9 @@ public class CommandHandler implements CommandExecutor {
 
 	private void executeCommand(Method executor, CommandSender sender, Object[] args) throws Exception {
 		final String permission = methodPermissions.get(executor);
-		if (permission != null) {
-			if (!sender.hasPermission(permission)) {
-				ThermalsPlugin.tell(sender, missingPermissionMessage);
-				return;
-			}
+		if (permission != null && !sender.hasPermission(permission)) {
+			ThermalsPlugin.tell(sender, missingPermissionMessage);
+			return;
 		}
 		executor.invoke(methodExecutors.get(executor), ArrayUtils.add(args, 0, sender));
 	}
@@ -144,23 +141,30 @@ public class CommandHandler implements CommandExecutor {
 			}
 			final Class<?>[] parameterTypes = method.getParameterTypes();
 			if (parameterTypes.length < 1 || !parameterTypes[0].isAssignableFrom(CommandSender.class)) {
-				throw new IllegalArgumentException("Command methods must have for first argument CommandSender");
+				throw new IllegalArgumentException("Command methods must have for first argument \"CommandSender\"");
 			}
 			methodExecutors.put(method, executor);
 			final Class<?>[] parameterTypesArgs = new Class<?>[parameterTypes.length - 1];
 			System.arraycopy(parameterTypes, 1, parameterTypesArgs, 0, parameterTypesArgs.length);
 			methodParameters.put(method, parameterTypesArgs);
-			if (method.isAnnotationPresent(RequiredArgumentValues.class)) {
-				final String[] requiredValues = method.getAnnotation(RequiredArgumentValues.class).value();
-				if (requiredValues != null && requiredValues.length > 0) {
-					methodRequiredValues.put(method, requiredValues);
-				}
+			final String permissionNodes = method.getAnnotation(CommandMethod.class).value();
+			if (!permissionNodes.isEmpty()) {
+				methodPermissions.put(method, permissionNodes);
 			}
-			if (method.isAnnotationPresent(CommandPermission.class)) {
-				final String[] permissionNodes = method.getAnnotation(CommandPermission.class).value();
-				if (permissionNodes != null && permissionNodes.length > 0) {
-					methodPermissions.put(method, StringUtils.join(permissionNodes, '.'));
+			final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+			final List<String> requiredValues = new ArrayList<String>();
+			parameterAnnotations:
+			for (int i = 1; i < parameterAnnotations.length; i++) {
+				for (Annotation annotation : parameterAnnotations[i]) {
+					if (annotation instanceof Require) {
+						requiredValues.add(((Require) annotation).value());
+						continue parameterAnnotations;
+					}
 				}
+				requiredValues.add("");
+			}
+			if (requiredValues.size() > 0) {
+				methodRequiredValues.put(method, requiredValues.toArray(new String[requiredValues.size()]));
 			}
 		}
 	}
@@ -184,17 +188,12 @@ public class CommandHandler implements CommandExecutor {
 	@Target(ElementType.METHOD)
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface CommandMethod {
+		public String value() default "";
 	}
 
-	@Target(ElementType.METHOD)
+	@Target(ElementType.PARAMETER)
 	@Retention(RetentionPolicy.RUNTIME)
-	public static @interface CommandPermission {
-		public String[] value() default {};
-	}
-
-	@Target(ElementType.METHOD)
-	@Retention(RetentionPolicy.RUNTIME)
-	public static @interface RequiredArgumentValues {
-		public String[] value() default {};
+	public static @interface Require {
+		public String value() default "";
 	}
 }
