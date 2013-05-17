@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 import me.ddos.thermals.command.CommandHandler;
 import me.ddos.thermals.command.IntLocationArgumentType;
 import me.ddos.thermals.command.IntegerArgumentType;
-import me.ddos.thermals.command.StringArgumentType;
 import me.ddos.thermals.command.ThermalsCommands;
 import me.ddos.thermals.database.HeatDatabase.DatabaseConnectionInfo;
 import me.ddos.thermals.heatmap.Background;
@@ -63,7 +62,7 @@ public class ThermalsPlugin extends JavaPlugin {
 		heatManager.start();
 		getServer().getPluginManager().registerEvents(new ThermalsListener(this), this);
 		final CommandHandler commandHandler = new CommandHandler();
-		commandHandler.addArgumentTypes(new IntegerArgumentType(), new IntLocationArgumentType(), new StringArgumentType());
+		commandHandler.addArgumentTypes(new IntegerArgumentType(), new IntLocationArgumentType());
 		commandHandler.addCommandExecutor(new ThermalsCommands(heatManager));
 		getCommand("th").setExecutor(commandHandler);
 		final PluginDescriptionFile description = getDescription();

@@ -30,6 +30,10 @@ public class CommandHandler implements CommandExecutor {
 	private final Map<Method, String> methodPermissions = new HashMap<Method, String>();
 	private String missingPermissionMessage = ChatColor.RED + "You don't have permission to use this command";
 
+	public CommandHandler() {
+		argumentTypes.add(new StringArgumentType());
+	}
+
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] stringArgs) {
 		final Object[] args = convertStringArguments(sender, stringArgs);
@@ -124,7 +128,7 @@ public class CommandHandler implements CommandExecutor {
 	}
 
 	public void addArgumentType(ArgumentType type) {
-		argumentTypes.add(type);
+		argumentTypes.add(argumentTypes.size() - 1, type);
 	}
 
 	public void addCommandExecutors(Object... executors) {
@@ -195,5 +199,17 @@ public class CommandHandler implements CommandExecutor {
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface Require {
 		public String value() default "";
+	}
+
+	private static class StringArgumentType implements ArgumentType {
+		@Override
+		public boolean isValid(CommandSender sender, String stringArg) {
+			return true;
+		}
+
+		@Override
+		public Object convert(CommandSender sender, String stringArg) {
+			return stringArg;
+		}
 	}
 }

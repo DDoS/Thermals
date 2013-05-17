@@ -52,18 +52,20 @@ public class MySQLHeatDatabase extends HeatDatabase {
 	}
 
 	@Override
-	public void connect() {
-		super.connect();
+	public boolean connect() {
+		if (!super.connect()) {
+			ThermalsPlugin.logSevere("Couldn't connect to MySQL server: missing connection information");
+			return false;
+		}
 		try {
 			connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + databaseName, user, password);
 		} catch (SQLException ex) {
 			ThermalsPlugin.logSevere("Couldn't connect to MySQL server: " + ex.getMessage());
-		}
-		if (connection == null) {
-			return;
+			return false;
 		}
 		ThermalsPlugin.logInfo("Connection to MySQL server was established");
 		verifyTable();
+		return true;
 	}
 
 	private void verifyTable() {

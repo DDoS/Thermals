@@ -17,10 +17,11 @@ public abstract class HeatDatabase {
 	protected String user;
 	protected String password;
 
-	public void connect() {
+	public boolean connect() {
 		if (host == null || port == null || databaseName == null || user == null || password == null) {
-			throw new IllegalStateException("host, port, databaseName, user or password not set");
+			return false;
 		}
+		return true;
 	}
 
 	public abstract void disconnect();

@@ -74,6 +74,15 @@ public class ThermalsCommands {
 		ThermalsPlugin.tell(sender, "Generation of heat map from " + from + " to " + to + " queued");
 	}
 
+	@CommandMethod("thermals.connect")
+	public void connectDatabase(CommandSender sender, @Require("connect") String subCommand) {
+		if (manager.ensureDatabaseConnected()) {
+			ThermalsPlugin.tell(sender, "The database connection has been established.");
+			return;
+		}
+		ThermalsPlugin.tell(sender, "The database connection failed or has already been established.");
+	}
+
 	private static IntLocation getMin(IntLocation location, int size) {
 		final int halfSize = size / 2;
 		return location.offset(-halfSize, -halfSize);

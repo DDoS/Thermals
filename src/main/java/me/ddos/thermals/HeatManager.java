@@ -48,9 +48,17 @@ public class HeatManager {
 			throw new IllegalStateException("Heat manager is not running");
 		}
 		timer.cancel();
+		timer.purge();
 		generator.end();
 		database.disconnect();
 		running = false;
+	}
+
+	public boolean ensureDatabaseConnected() {
+		if (!database.hasConnection()) {
+			return database.connect();
+		}
+		return false;
 	}
 
 	public void queueHeatIncrement(int x, int z) {
