@@ -193,6 +193,8 @@ Example:
 
 ### Clearing
 
+Permission: `thermals.clear`
+
 Clears the heat value at the given location.  
 `/th clear [(location) location]`
 
@@ -207,10 +209,14 @@ Clears all of the heat values. This action is irreversible!
 
 ### Getting
 
+Permission: `thermals.get`
+
 Gets the heat value at the given location.  
 `/th get [(location) location]`
 
 ### Setting
+
+Permission: `thermals.set`
 
 Sets the heat value at the given location.  
  `/th set [(location) location] [(integer) heat]`
@@ -223,6 +229,8 @@ Sets all of the heat values in the area included between the first and second lo
 
 ### Generating
 
+Permission: `thermals.gen`
+
 Generates a heat map of all of the heat values in a square of given radius, with the location being the middle, and saves it as PNG in the plugin data folder, overriding any existing file with a conflicting name. The file name should not include the extension.  
 `/th gen [(location) middle] [(integer) radius] [(string) file name]`
 
@@ -230,6 +238,8 @@ Generates a heat map of all of the heat values in the area included between the 
 `/th gen [(location) from] [(location) to] [(string) file name]`
 
 ### Other
+
+Permission: `thermals.connect`
 
 Attemps to establish a connection to the database.  
 `/th connect`
