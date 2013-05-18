@@ -239,7 +239,12 @@ public class CommandHandler implements CommandExecutor {
 					}
 				}
 			}
-			paramDocs[i++] += parameters.trim();
+			paramDocs[i] += parameters.trim();
+			final String permission = methodPermissions.get(method);
+			if (permission != null) {
+				paramDocs[i] += "\n" + permission;
+			}
+			i++;
 		}
 		document.addParagraphs("Command Usage", paramDocs);
 		return document;
