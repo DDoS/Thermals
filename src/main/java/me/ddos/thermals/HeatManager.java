@@ -11,6 +11,7 @@ import me.ddos.thermals.location.Heat;
 import me.ddos.thermals.database.HeatDatabase.DatabaseConnectionInfo;
 import me.ddos.thermals.heatmap.Background;
 import me.ddos.thermals.util.ThermalsUtil;
+import org.bukkit.World;
 
 /**
  *

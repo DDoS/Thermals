@@ -22,6 +22,8 @@ public class ThermalsConfiguration {
 	public String databaseUser = "root";
 	@Setting("database.password")
 	public String databasePassword = "pass";
+	@Setting("logger.world")
+	public String loggerWorld = "world";
 	@Setting("logger.delay")
 	public long loggerDelay = 30000;
 	@Setting("logger.run-threshold")

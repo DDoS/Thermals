@@ -12,7 +12,9 @@ import me.ddos.thermals.command.IntegerArgumentType;
 import me.ddos.thermals.command.ThermalsCommands;
 import me.ddos.thermals.database.HeatDatabase.DatabaseConnectionInfo;
 import me.ddos.thermals.heatmap.Background;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -58,9 +60,14 @@ public class ThermalsPlugin extends JavaPlugin {
 		} catch (Exception ex) {
 			logSevere("Couldn't save the config defaults: " + ex.getMessage());
 		}
+		final World world = Bukkit.getWorld(config.loggerWorld);
+		if (world == null) {
+			logSevere("The world specified in the config doesn't exist. Enabling aborted.");
+			return;
+		}
 		heatManager = createHeatManager();
 		heatManager.start();
-		getServer().getPluginManager().registerEvents(new ThermalsListener(this), this);
+		getServer().getPluginManager().registerEvents(new ThermalsListener(this, world), this);
 		final CommandHandler commandHandler = new CommandHandler("th");
 		commandHandler.addArgumentTypes(new IntegerArgumentType(), new IntLocationArgumentType());
 		commandHandler.addCommandExecutor(new ThermalsCommands(heatManager));
