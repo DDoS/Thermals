@@ -1,1 +1,0 @@
-Thermals is a Bukkit plugin for generating heat maps for event locations. The plugin is currently in development and only supports heat mapping of redstone events.
